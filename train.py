@@ -53,16 +53,16 @@ def main():
     # Initialize / load checkpoint
     if checkpoint is None:
         decoder = DecoderWithAttention(attention_dim=attention_dim,
-                                       embed_dim=emb_dim,
-                                       decoder_dim=decoder_dim,
-                                       vocab_size=len(word_map),
-                                       dropout=dropout)
+embed_dim=emb_dim,
+decoder_dim=decoder_dim,
+vocab_size=len(word_map),
+dropout=dropout)
         decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
-                                             lr=decoder_lr)
+lr=decoder_lr)
         encoder = Encoder()
         encoder.fine_tune(fine_tune_encoder)
         encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
-                                             lr=encoder_lr) if fine_tune_encoder else None
+lr=encoder_lr) if fine_tune_encoder else None
 
     else:
         checkpoint = torch.load(checkpoint)
@@ -76,7 +76,7 @@ def main():
         if fine_tune_encoder is True and encoder_optimizer is None:
             encoder.fine_tune(fine_tune_encoder)
             encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
-                                                 lr=encoder_lr)
+lr=encoder_lr)
 
     # Move to GPU, if available
     decoder = decoder.to(device)
@@ -87,7 +87,7 @@ def main():
 
     # Custom dataloaders
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+std=[0.229, 0.224, 0.225])
     train_loader = torch.utils.data.DataLoader(
         CaptionDataset(data_folder, data_name, 'TRAIN', transform=transforms.Compose([normalize])),
         batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)
@@ -108,12 +108,12 @@ def main():
 
         # One epoch's training
         train(train_loader=train_loader,
-              encoder=encoder,
-              decoder=decoder,
-              criterion=criterion,
-              encoder_optimizer=encoder_optimizer,
-              decoder_optimizer=decoder_optimizer,
-              epoch=epoch)
+encoder=encoder,
+decoder=decoder,
+criterion=criterion,
+encoder_optimizer=encoder_optimizer,
+decoder_optimizer=decoder_optimizer,
+epoch=epoch)
 
         # One epoch's validation
         recent_bleu4 = validate(val_loader=val_loader,
@@ -213,13 +213,13 @@ def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_
         # Print status
         if i % print_freq == 0:
             print('Epoch: [{0}][{1}/{2}]\t'
-                  'Batch Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                  'Data Load Time {data_time.val:.3f} ({data_time.avg:.3f})\t'
-                  'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                  'Top-5 Accuracy {top5.val:.3f} ({top5.avg:.3f})'.format(epoch, i, len(train_loader),
-                                                                          batch_time=batch_time,
-                                                                          data_time=data_time, loss=losses,
-                                                                          top5=top5accs))
+'Batch Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+'Data Load Time {data_time.val:.3f} ({data_time.avg:.3f})\t'
+'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+'Top-5 Accuracy {top5.val:.3f} ({top5.avg:.3f})'.format(epoch, i, len(train_loader),
+batch_time=batch_time,
+data_time=data_time, loss=losses,
+top5=top5accs))
 
 
 def validate(val_loader, encoder, decoder, criterion):
@@ -286,9 +286,9 @@ def validate(val_loader, encoder, decoder, criterion):
 
             if i % print_freq == 0:
                 print('Validation: [{0}/{1}]\t'
-                      'Batch Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-                      'Top-5 Accuracy {top5.val:.3f} ({top5.avg:.3f})\t'.format(i, len(val_loader), batch_time=batch_time,
+'Batch Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+'Top-5 Accuracy {top5.val:.3f} ({top5.avg:.3f})\t'.format(i, len(val_loader), batch_time=batch_time,
                                                                                 loss=losses, top5=top5accs))
 
             # Store references (true captions), and hypothesis (prediction) for each image
