@@ -10,7 +10,7 @@ from random import seed, choice, sample
 
 
 def create_input_files(dataset, karpathy_json_path, image_folder, captions_per_image, min_word_freq, output_folder,
-                       max_len=100):
+max_len=100):
     """
     Creates input files for training, validation, and test data.
 
@@ -85,8 +85,8 @@ def create_input_files(dataset, karpathy_json_path, image_folder, captions_per_i
     # Sample captions for each image, save images to HDF5 file, and captions and their lengths to JSON files
     seed(123)
     for impaths, imcaps, split in [(train_image_paths, train_image_captions, 'TRAIN'),
-                                   (val_image_paths, val_image_captions, 'VAL'),
-                                   (test_image_paths, test_image_captions, 'TEST')]:
+(val_image_paths, val_image_captions, 'VAL'),
+(test_image_paths, test_image_captions, 'TEST')]:
 
         with h5py.File(os.path.join(output_folder, split + '_IMAGES_' + base_filename + '.hdf5'), 'a') as h:
             # Make a note of the number of captions we are sampling per image
@@ -221,12 +221,12 @@ def save_checkpoint(data_name, epoch, epochs_since_improvement, encoder, decoder
     :param is_best: is this checkpoint the best so far?
     """
     state = {'epoch': epoch,
-             'epochs_since_improvement': epochs_since_improvement,
-             'bleu-4': bleu4,
-             'encoder': encoder,
-             'decoder': decoder,
-             'encoder_optimizer': encoder_optimizer,
-             'decoder_optimizer': decoder_optimizer}
+'epochs_since_improvement': epochs_since_improvement,
+'bleu-4': bleu4,
+'encoder': encoder,
+'decoder': decoder,
+'encoder_optimizer': encoder_optimizer,
+'decoder_optimizer': decoder_optimizer}
     filename = 'checkpoint_' + data_name + '.pth.tar'
     torch.save(state, filename)
     # If this checkpoint is the best so far, store a copy so it doesn't get overwritten by a worse checkpoint

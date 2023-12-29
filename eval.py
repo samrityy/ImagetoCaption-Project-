@@ -33,7 +33,7 @@ vocab_size = len(word_map)
 
 # Normalization transform
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
+std=[0.229, 0.224, 0.225])
 
 
 def evaluate(beam_size):
@@ -129,7 +129,7 @@ def evaluate(beam_size):
 
             # Which sequences are incomplete (didn't reach <end>)?
             incomplete_inds = [ind for ind, next_word in enumerate(next_word_inds) if
-                               next_word != word_map['<end>']]
+next_word != word_map['<end>']]
             complete_inds = list(set(range(len(next_word_inds))) - set(incomplete_inds))
 
             # Set aside complete sequences
