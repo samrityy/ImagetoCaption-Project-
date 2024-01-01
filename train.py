@@ -11,8 +11,8 @@ from utils import *
 from nltk.translate.bleu_score import corpus_bleu
 
 # Data parameters
-data_folder = '/media/ssd/caption data'  # folder with data files saved by create_input_files.py
-data_name = 'coco_5_cap_per_img_5_min_word_freq'  # base name shared by data files
+data_folder = 'C:/work/ImagetoCaption-Project-/Flickr8k_preprocessed'  # folder with data files saved by create_input_files.py
+data_name = 'flickr8k_5_cap_per_img_5_min_word_freq'  # base name shared by data files
 
 # Model parameters
 emb_dim = 512  # dimension of word embeddings
@@ -80,6 +80,7 @@ lr=encoder_lr)
 
     # Move to GPU, if available
     decoder = decoder.to(device)
+    print("Epochs since last improvement: %d\n" % (epochs_since_improvement,))
     encoder = encoder.to(device)
 
     # Loss function
@@ -90,10 +91,12 @@ lr=encoder_lr)
 std=[0.229, 0.224, 0.225])
     train_loader = torch.utils.data.DataLoader(
         CaptionDataset(data_folder, data_name, 'TRAIN', transform=transforms.Compose([normalize])),
-        batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)
+        batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
+    print("------------TRAIN LOADER LENGTH: %d-----------------" % (len(train_loader),))
     val_loader = torch.utils.data.DataLoader(
         CaptionDataset(data_folder, data_name, 'VAL', transform=transforms.Compose([normalize])),
-        batch_size=batch_size, shuffle=True, num_workers=workers, pin_memory=True)
+        batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True)
+    print("------------VAL LOADER LENGTH: %d-----------------" % (len(val_loader),))
 
     # Epochs
     for epoch in range(start_epoch, epochs):
@@ -106,6 +109,7 @@ std=[0.229, 0.224, 0.225])
             if fine_tune_encoder:
                 adjust_learning_rate(encoder_optimizer, 0.8)
 
+        print("---------------------SHUBHA IN MAIN FUNC-------------------------")
         # One epoch's training
         train(train_loader=train_loader,
 encoder=encoder,
@@ -135,6 +139,7 @@ epoch=epoch)
                         decoder_optimizer, recent_bleu4, is_best)
 
 
+
 def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_optimizer, epoch):
     """
     Performs one epoch's training.
@@ -157,11 +162,13 @@ def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_
     top5accs = AverageMeter()  # top5 accuracy
 
     start = time.time()
-
+    print("------------TRAIN LOADER LENGTH: %d-----------------" % (len(train_loader)))
     # Batches
     for i, (imgs, caps, caplens) in enumerate(train_loader):
+        print("DATA_tIME: ")
         data_time.update(time.time() - start)
 
+        print("---------------------SHUBHA IN TRAIN FUNC-------------------------")
         # Move to GPU, if available
         imgs = imgs.to(device)
         caps = caps.to(device)
@@ -176,8 +183,8 @@ def train(train_loader, encoder, decoder, criterion, encoder_optimizer, decoder_
 
         # Remove timesteps that we didn't decode at, or are pads
         # pack_padded_sequence is an easy trick to do this
-        scores, _ = pack_padded_sequence(scores, decode_lengths, batch_first=True)
-        targets, _ = pack_padded_sequence(targets, decode_lengths, batch_first=True)
+        scores= pack_padded_sequence(scores, decode_lengths, batch_first=True).data
+        targets = pack_padded_sequence(targets, decode_lengths, batch_first=True).data
 
         # Calculate loss
         loss = criterion(scores, targets)

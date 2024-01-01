@@ -24,6 +24,7 @@ class Encoder(nn.Module):
         self.adaptive_pool = nn.AdaptiveAvgPool2d((encoded_image_size, encoded_image_size))
 
         self.fine_tune()
+        print("----------IMAGE ENCODER CONSTRUCTOR----------")
 
     def forward(self, images):
         """
@@ -69,6 +70,8 @@ class Attention(nn.Module):
         self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim=1)  # softmax layer to calculate weights
 
+        print("-----------------ATTENTION CONSTRUCTOR-----------------")
+
     def forward(self, encoder_out, decoder_hidden):
         """
         Forward propagation.
@@ -110,16 +113,17 @@ class DecoderWithAttention(nn.Module):
         self.dropout = dropout
 
         self.attention = Attention(encoder_dim, decoder_dim, attention_dim)  # attention network
-
         self.embedding = nn.Embedding(vocab_size, embed_dim)  # embedding layer
         self.dropout = nn.Dropout(p=self.dropout)
         self.decode_step = nn.LSTMCell(embed_dim + encoder_dim, decoder_dim, bias=True)  # decoding LSTMCell
         self.init_h = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial hidden state of LSTMCell
         self.init_c = nn.Linear(encoder_dim, decoder_dim)  # linear layer to find initial cell state of LSTMCell
+        print("------------NORDEN IS NORDEN CONSTRUCTOR------------")
         self.f_beta = nn.Linear(decoder_dim, encoder_dim)  # linear layer to create a sigmoid-activated gate
         self.sigmoid = nn.Sigmoid()
         self.fc = nn.Linear(decoder_dim, vocab_size)  # linear layer to find scores over vocabulary
         self.init_weights()  # initialize some layers with the uniform distribution
+        print("----------DECODER CONSTRUCTOR----------")
 
     def init_weights(self):
         """

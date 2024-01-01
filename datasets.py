@@ -40,6 +40,7 @@ class CaptionDataset(Dataset):
 
         # Total number of datapoints
         self.dataset_size = len(self.captions)
+        print("----------DATASET CONSTRUCTOR----------")
 
     def __getitem__(self, i):
         # Remember, the Nth caption corresponds to the (N // captions_per_image)th image
@@ -51,7 +52,7 @@ class CaptionDataset(Dataset):
 
         caplen = torch.LongTensor([self.caplens[i]])
 
-        if self.split is 'TRAIN':
+        if self.split == 'TRAIN':
             return img, caption, caplen
         else:
             # For validation of testing, also return all 'captions_per_image' captions to find BLEU-4 score

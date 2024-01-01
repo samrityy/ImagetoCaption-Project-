@@ -3,10 +3,11 @@ import numpy as np
 import h5py
 import json
 import torch
-from scipy.misc import imread, imresize
+from scipy.misc import *
 from tqdm import tqdm
 from collections import Counter
 from random import seed, choice, sample
+import imageio
 
 
 def create_input_files(dataset, karpathy_json_path, image_folder, captions_per_image, min_word_freq, output_folder,
@@ -88,12 +89,16 @@ max_len=100):
 (val_image_paths, val_image_captions, 'VAL'),
 (test_image_paths, test_image_captions, 'TEST')]:
 
+        
         with h5py.File(os.path.join(output_folder, split + '_IMAGES_' + base_filename + '.hdf5'), 'a') as h:
+
+            if 'images' in h:
+                del h['images'] 
             # Make a note of the number of captions we are sampling per image
             h.attrs['captions_per_image'] = captions_per_image
 
             # Create dataset inside HDF5 file to store images
-            images = h.create_dataset('images', (len(impaths), 3, 256, 256), dtype='uint8')
+            images = h.create_dataset('images', (len(impaths), 3, 256, 256), dtype='uint8', chunks=(1, 3, 256, 256))
 
             print("\nReading %s images and captions, storing to file...\n" % split)
 
@@ -101,7 +106,7 @@ max_len=100):
             caplens = []
 
             for i, path in enumerate(tqdm(impaths)):
-
+                print(f"Current Image ${i} Path is: {path}")
                 # Sample captions
                 if len(imcaps[i]) < captions_per_image:
                     captions = imcaps[i] + [choice(imcaps[i]) for _ in range(captions_per_image - len(imcaps[i]))]
@@ -112,28 +117,40 @@ max_len=100):
                 assert len(captions) == captions_per_image
 
                 # Read images
-                img = imread(impaths[i])
-                if len(img.shape) == 2:
-                    img = img[:, :, np.newaxis]
-                    img = np.concatenate([img, img, img], axis=2)
-                img = imresize(img, (256, 256))
-                img = img.transpose(2, 0, 1)
-                assert img.shape == (3, 256, 256)
-                assert np.max(img) <= 255
+                img = imageio.imread(impaths[i])
 
-                # Save image to HDF5 file
-                images[i] = img
+            
+                print("IMAGE RUNTIME TYPE OUTSIDE: " + str(type(img)))
+                print("Image Shape is: " + str(img))
+                print("IS IMAGE NONE: " + str(img is None))
+                if img is not None:
+                    print(str(img.shape) + " is the shape of the image")
+                    print("IMAGE RUNTIME TYPE: " + str(type(img)))
+                    if len(img.shape) == 2:
+                        print("Image is 2D")
+                        img = img[:, :, np.newaxis]
+                        img = np.concatenate([img, img, img], axis=2)
+                    img = np.resize(img, (256, 256, 3))
+                    print("IMAGE RUNTIME TYPE: " + str(type(img)))
+                    print("Image is resized" + str(img.shape))
+                    print(img)
+                    img = img.transpose(2, 0, 1)
+                    assert img.shape == (3, 256, 256)
+                    assert np.max(img) <= 255
 
-                for j, c in enumerate(captions):
-                    # Encode captions
-                    enc_c = [word_map['<start>']] + [word_map.get(word, word_map['<unk>']) for word in c] + [
-                        word_map['<end>']] + [word_map['<pad>']] * (max_len - len(c))
+                    # Save image to HDF5 file
+                    images[i] = img
 
-                    # Find caption lengths
-                    c_len = len(c) + 2
+                    for j, c in enumerate(captions):
+                        # Encode captions
+                        enc_c = [word_map['<start>']] + [word_map.get(word, word_map['<unk>']) for word in c] + [
+                            word_map['<end>']] + [word_map['<pad>']] * (max_len - len(c))
 
-                    enc_captions.append(enc_c)
-                    caplens.append(c_len)
+                        # Find caption lengths
+                        c_len = len(c) + 2
+
+                        enc_captions.append(enc_c)
+                        caplens.append(c_len)
 
             # Sanity check
             assert images.shape[0] * captions_per_image == len(enc_captions) == len(caplens)
@@ -249,6 +266,7 @@ class AverageMeter(object):
         self.count = 0
 
     def update(self, val, n=1):
+        print("---------------SHUBHA IN UPDATE FUNC OF UTILS------------------")
         self.val = val
         self.sum += val * n
         self.count += n
